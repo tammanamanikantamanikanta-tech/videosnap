@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power</title>
+</head>
+<body>
+    <div>
+        <h2>Power</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <label>a_value</label>
+            <input type="number" name="a_value" value="{{ a_value }}" required>
+            <label>b_value</label>
+            <input type="number" name="b_value" value="{{ b_value }}" required>
+            <button type="submit">Power</button>
+        </form>
+
+        {% if c != "" %}
+        <div class="result">Result: {{ c }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

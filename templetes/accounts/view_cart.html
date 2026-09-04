@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart — VideoSnap Shop</title>
+    <meta name="description" content="Review your cart items, quantities and checkout.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0c14;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.08);
+            --accent: #6c63ff;
+            --accent2: #a78bfa;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 20% 10%, rgba(108,99,255,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.10) 0%, transparent 60%);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            height: 68px;
+            background: rgba(10,12,20,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .navbar-brand {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        .btn-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        .btn-nav:hover { background: var(--surface-hover); transform: translateY(-1px); }
+
+        /* Page wrapper */
+        .page { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+        /* Header */
+        .page-header { margin-bottom: 32px; }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+        }
+        .page-header h1 span {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page-header p { margin-top: 6px; font-size: 14px; color: var(--text-muted); }
+
+        /* Cart layout */
+        .cart-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+        /* Cart items panel */
+        .cart-items-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .panel-label {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        /* Cart item row */
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item:hover { background: rgba(255,255,255,0.02); }
+
+        .item-img {
+            width: 72px;
+            height: 72px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: rgba(108,99,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; }
+        .item-img-placeholder svg { opacity: 0.3; }
+
+        .item-info { flex: 1; min-width: 0; }
+        .item-name {
+            font-size: 15px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-price-unit {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* Qty stepper */
+        .item-qty-stepper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .qty-stepper-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            transition: all 0.18s ease;
+        }
+        .qty-stepper-btn:hover:not(:disabled) {
+            background: rgba(108,99,255,0.18);
+            border-color: rgba(108,99,255,0.4);
+            color: var(--accent2);
+            transform: scale(1.08);
+        }
+        .qty-stepper-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .qty-stepper-btn.dec-btn:hover:not(:disabled) {
+            background: rgba(239,68,68,0.14);
+            border-color: rgba(239,68,68,0.35);
+            color: #f87171;
+        }
+        .qty-value {
+            min-width: 34px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--accent2);
+        }
+        .stock-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        .item-subtotal {
+            font-size: 16px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            min-width: 86px;
+            text-align: right;
+        }
+
+        .item-remove form { display: inline; }
+        .btn-remove {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.18);
+            color: #f87171;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-remove:hover {
+            background: rgba(239,68,68,0.18);
+            transform: scale(1.08);
+        }
+
+        /* Summary panel */
+        .summary-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            position: sticky;
+            top: 88px;
+        }
+        .summary-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .summary-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
+        }
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .summary-total-label { font-size: 15px; font-weight: 700; }
+        .summary-total-value {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn-checkout {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn-checkout:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.4); }
+
+        .btn-continue {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            padding: 11px;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn-continue:hover { background: var(--surface-hover); color: var(--text); }
+
+        /* Empty state */
+        .empty-cart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            text-align: center;
+            gap: 16px;
+            grid-column: 1 / -1;
+        }
+        .empty-cart-icon {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(108,99,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-cart h2 { font-size: 22px; font-weight: 700; color: var(--text-muted); }
+        .empty-cart p { font-size: 14px; color: rgba(148,163,184,0.6); }
+        .empty-cart a {
+            margin-top: 8px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .empty-cart a:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 4px 20px rgba(108,99,255,0.4); }
+
+        /* Responsive */
+        @media (max-width: 720px) {
+            .navbar { padding: 0 20px; }
+            .cart-layout { grid-template-columns: 1fr; }
+            .summary-panel { position: static; }
+            .cart-item { flex-wrap: wrap; }
+            .item-subtotal { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="{% url 'allproducts' %}" class="navbar-brand">🛍️ VideoSnap Shop</a>
+        <a href="{% url 'allproducts' %}" class="btn-nav">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Continue Shopping
+        </a>
+    </nav>
+
+    <div class="page">
+
+        <div class="page-header">
+            <h1>Your <span>Cart</span></h1>
+            <p>{{ cart_count }} item{{ cart_count|pluralize }} in your cart</p>
+        </div>
+
+        {% if cart_items %}
+        <div class="cart-layout">
+
+            <!-- Cart Items -->
+            <div>
+                <div class="cart-items-panel">
+                    <div class="panel-label">Cart Items</div>
+
+                    {% for item in cart_items %}
+                    <div class="cart-item">
+
+                        <!-- Image -->
+                        <div class="item-img">
+                            {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <div class="item-img-placeholder">
+                                    <svg width="28" height="28" fill="none" stroke="#6c63ff" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <div class="item-info">
+                            <div class="item-name">{{ item.product.name }}</div>
+                            <div class="item-price-unit">₹{{ item.product.price }} per unit</div>
+                        </div>
+
+                        <!-- Qty Stepper -->
+                        <div>
+                            <div class="item-qty-stepper">
+                                <!-- Decrement (removes item when qty=1) -->
+                                <form action="{% url 'update_cart_quantity' item.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="dec">
+                                    <button type="submit" class="qty-stepper-btn dec-btn" title="{% if item.quantity == 1 %}Remove from cart{% else %}Decrease quantity{% endif %}">−</button>
+                                </form>
+
+                                <span class="qty-value">{{ item.quantity }}</span>
+
+                                <!-- Increment (disabled at stock limit) -->
+                                <form action="{% url 'update_cart_quantity' item.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="inc">
+                                    <button type="submit" class="qty-stepper-btn" title="Increase quantity"
+                                        {% if item.quantity >= item.product.stock %}disabled{% endif %}>+</button>
+                                </form>
+                            </div>
+                            <div class="stock-hint">{{ item.product.stock }} in stock</div>
+                        </div>
+
+                        <!-- Subtotal (qty × price) -->
+                        <div class="item-subtotal">₹{{ item.product.price|floatformat:2 }}</div>
+
+                        <!-- Remove entirely -->
+                        <div class="item-remove">
+                            <form action="{% url 'delete_cart' item.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-remove" title="Remove item">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-panel">
+                <div class="summary-title">Order Summary</div>
+
+                {% for item in cart_items %}
+                <div class="summary-row">
+                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                    <span>₹{% widthratio item.product.price 1 item.quantity %}</span>
+                </div>
+                {% endfor %}
+
+                <hr class="summary-divider">
+
+                <div class="summary-total">
+                    <span class="summary-total-label">Total</span>
+                    <span class="summary-total-value">₹{{ total|floatformat:2 }}</span>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn-checkout">
+                    Proceed to Checkout →
+                </a>
+                <a href="{% url 'allproducts' %}" class="btn-continue">
+                    ← Continue Shopping
+                </a>
+            </div>
+
+        </div>
+
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <svg width="40" height="40" fill="none" stroke="#6c63ff" stroke-width="1.6" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added anything yet.</p>
+            <a href="{% url 'allproducts' %}">Browse Products</a>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Videos</title>
+</head>
+<body>
+    <h1>All Videos</h1>
+    <div class="videos">
+        {% for video in allvideos %}
+        <div class="video">
+            <h2>{{ video.title }}</h2>
+            <p>{{ video.description }}</p>
+            <video controls>
+                <source src="{{ video.video.url }}" type="video/mp4">
+            </video>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
